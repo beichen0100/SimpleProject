@@ -1,0 +1,47 @@
+/*************************************************************************
+	> File Name: my_popen.c
+	> Author: Qiyue
+	> Mail: xiliiu@163.com
+	> Memo: somebody die, and somebody relife!
+	> Created Time: Mon 28 Feb 2022 02:57:14 PM CST
+ ************************************************************************/
+
+#include "head.h" 
+
+
+int main() {
+    int fd[2];
+    pid_t pid;
+
+    // 创建管道
+    if (pipe(fd) < 0) {
+        perror("pipe");
+        exit(1);
+    }
+
+    // fork 
+    if ((pid = fork()) < 0) {
+        perror("fork");
+        exit(1);
+    }
+    if (pid == 0) {
+        close(fd[1]); //子进程关闭写端
+        sleep(1);
+        char buff[30] = {0};
+        ssize_t n = read(fd[0],buff, sizeof(buff));
+        if(n >= 0) {
+            write(1, "child Proc: ", 20);
+            write(STDOUT_FILENO, buff, n);
+        }
+    } else {
+        // 父进程关闭读端
+        close(fd[0]);
+        write(fd[1], "hello, this is parent Proc\n", 28);
+        wait(NULL); // 等待子进程结束（死亡
+        sleep(2);
+        printf("child proc completed\n");
+        printf("parent proc completed\n");
+    }
+    
+    return 0;
+}
